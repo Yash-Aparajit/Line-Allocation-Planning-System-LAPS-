@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h4>Line Master</h4>
+
+<form method="post" class="card p-3 mb-3">
+  <input name="line_name" class="form-control" placeholder="New Line Name" required>
+  <button class="btn btn-primary mt-2">Add Line</button>
+</form>
+
+<div class="list-group">
+{% for l in lines %}
+  <a href="{{ url_for('line_activities', line_id=l.id) }}" class="list-group-item">
+    {{ l.name }}
+  </a>
+{% endfor %}
+</div>
+
+{% endblock %}
