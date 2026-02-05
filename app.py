@@ -280,20 +280,24 @@ def compute_allocation(line_id, plan_qty, shift_min):
     takt = shift_sec / plan_qty
     manpower = math.ceil(wc / takt)
 
+    LOWER_BOUND = takt - 10
+    UPPER_BOUND = takt + 2
+
     while True:
         buckets = [[] for _ in range(manpower)]
         times = [0] * manpower
-        target = wc / manpower
 
         op = 0
         for act in activities:
-            if times[op] + act.time_sec > target and op < manpower - 1:
+            if times[op] + act.time_sec > UPPER_BOUND and op < manpower - 1:
                 op += 1
+
             buckets[op].append(act)
             times[op] += act.time_sec
 
-        if max(times) <= takt or manpower >= len(activities):
+        if max(times) <= UPPER_BOUND or manpower >= len(activities):
             break
+
         manpower += 1
 
     operators = []
