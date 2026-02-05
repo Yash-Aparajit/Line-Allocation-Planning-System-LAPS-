@@ -2,25 +2,38 @@ body {
   background: #f4f6f9;
 }
 
-.card {
-  border-radius: 10px;
-}
-
-.table th {
-  background-color: #f1f3f5;
-}
-
-.alert {
-  border-radius: 8px;
-}
+/* Cards */
 .card {
   border-radius: 12px;
 }
 
-.badge {
-  font-size: 0.85rem;
+/* Tables */
+.table th {
+  background-color: #f1f3f5;
 }
 
-.table td, .table th {
+.table td,
+.table th {
   vertical-align: middle;
+}
+
+/* Alerts */
+.alert {
+  border-radius: 8px;
+}
+
+/* Badges */
+.badge {
+  font-size: 0.85rem;
+  padding: 0.45em 0.65em;
+}
+
+/* Clickable card headers */
+.card-header {
+  user-select: none;
+}
+
+/* Minor polish */
+h4 {
+  font-weight: 600;
 }
