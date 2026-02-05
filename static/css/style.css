@@ -13,3 +13,14 @@ body {
 .alert {
   border-radius: 8px;
 }
+.card {
+  border-radius: 12px;
+}
+
+.badge {
+  font-size: 0.85rem;
+}
+
+.table td, .table th {
+  vertical-align: middle;
+}
