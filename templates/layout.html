@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>LAPS</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar navbar-light bg-white shadow-sm px-4">
+  <span class="navbar-brand fw-bold">LAPS</span>
+
+  {% if current_user.is_authenticated %}
+  <div>
+    <a href="{{ url_for('line_master') }}" class="btn btn-outline-primary btn-sm">Line Master</a>
+    <a href="{{ url_for('daily_plan') }}" class="btn btn-outline-primary btn-sm">Daily Plan</a>
+    <a href="{{ url_for('backup') }}" class="btn btn-outline-secondary btn-sm">Backup</a>
+    <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Logout</a>
+  </div>
+  {% endif %}
+</nav>
+
+<div class="container my-4">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert alert-{{ cat }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</div>
+
+</body>
+</html>
