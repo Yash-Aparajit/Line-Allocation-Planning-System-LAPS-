@@ -69,6 +69,12 @@
 
 
 <hr>
+<div class="mb-2">
+  <h6 class="fw-semibold mb-1">Manual Activity Entry (Optional)</h6>
+  <p class="text-muted small">
+    Use only for small edits. Excel import is recommended for bulk updates.
+  </p>
+</div>
 
 <form method="post" class="row g-2 mb-3">
   <input name="seq" class="form-control col" placeholder="Seq" required>
@@ -97,7 +103,10 @@
     {% endfor %}
   {% else %}
     <tr>
-      <td colspan="3" class="text-center text-muted">No activities found</td>
+      <td colspan="3" class="text-center text-muted py-4">
+        No activities defined yet.<br>
+        <small>Import from Excel or add activities manually to get started.</small>
+      </td>
     </tr>
   {% endif %}
   </tbody>
