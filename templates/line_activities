@@ -1,33 +1,62 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<h4>{{ line.name }} – Activities</h4>
+<h4>{{ line.name }} – Line Master</h4>
+
+<div class="card p-3 mb-3">
+  <a href="{{ url_for('download_line_template') }}" class="btn btn-outline-secondary btn-sm">
+    Download Excel Template
+  </a>
+
+  <form method="post" action="{{ url_for('import_line_activities', line_id=line.id) }}"
+        enctype="multipart/form-data" class="mt-2">
+    <input type="file" name="file" required>
+    <button class="btn btn-primary btn-sm">Import Excel</button>
+  </form>
+
+  <a href="{{ url_for('export_line_activities', line_id=line.id) }}"
+     class="btn btn-outline-success btn-sm mt-2">
+    Export Activities
+  </a>
+</div>
+
+<hr>
 
 <form method="post" class="row g-2 mb-3">
   <input name="seq" class="form-control col" placeholder="Seq" required>
-  <input name="text" class="form-control col" placeholder="Activity">
-  <input name="time_sec" class="form-control col" placeholder="Time (sec)">
+  <input name="text" class="form-control col" placeholder="Activity" required>
+  <input name="time_sec" class="form-control col" placeholder="Time (sec)" required>
   <button class="btn btn-success col">Add</button>
 </form>
 
 <div class="table-responsive">
-<table class="table table-sm">
+<table class="table table-sm table-hover">
   <thead>
-    <tr><th>Seq</th><th>Activity</th><th>Time</th></tr>
+    <tr>
+      <th>Seq</th>
+      <th>Activity</th>
+      <th>Time (sec)</th>
+    </tr>
   </thead>
   <tbody>
-  {% for a in activities %}
+  {% if activities %}
+    {% for a in activities %}
     <tr>
       <td>{{ a.seq_no }}</td>
       <td>{{ a.text }}</td>
       <td>{{ a.time_sec }}</td>
     </tr>
-  {% endfor %}
+    {% endfor %}
+  {% else %}
+    <tr>
+      <td colspan="3" class="text-center text-muted">No activities found</td>
+    </tr>
+  {% endif %}
   </tbody>
 </table>
 </div>
 
-<p><strong>Total Work Content:</strong> {{ total_wc }} sec</p>
+<p class="fw-bold">Total Work Content: {{ total_wc }} sec</p>
 
 <a href="{{ url_for('line_master') }}" class="btn btn-secondary">Back</a>
 
