@@ -3,22 +3,69 @@
 
 <h4>{{ line.name }} – Line Master</h4>
 
-<div class="card p-3 mb-3">
-  <a href="{{ url_for('download_line_template') }}" class="btn btn-outline-secondary btn-sm">
-    Download Excel Template
-  </a>
+<!-- ================= LINE SUMMARY ================= -->
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h5 class="mb-1">{{ line.name }} — Line Master</h5>
+        <small class="text-muted">
+          This data defines all downstream manpower calculations
+        </small>
+      </div>
+      <span class="badge bg-primary">
+        {{ activities|length }} Activities
+      </span>
+    </div>
 
-  <form method="post" action="{{ url_for('import_line_activities', line_id=line.id) }}"
-        enctype="multipart/form-data" class="mt-2">
-    <input type="file" name="file" required>
-    <button class="btn btn-primary btn-sm">Import Excel</button>
-  </form>
+    <hr>
 
-  <a href="{{ url_for('export_line_activities', line_id=line.id) }}"
-     class="btn btn-outline-success btn-sm mt-2">
-    Export Activities
-  </a>
+    <div class="row">
+      <div class="col-md-4">
+        <div class="fw-semibold">Total Work Content</div>
+        <div class="fs-4">{{ total_wc }} sec</div>
+      </div>
+      <div class="col-md-8 text-muted small">
+        Ensure activity sequence and time values are correct.
+        Any change here impacts daily planning.
+      </div>
+    </div>
+  </div>
 </div>
+
+<!-- ================= EXCEL IMPORT / EXPORT ================= -->
+<div class="card shadow-sm mb-4 border-primary">
+  <div class="card-body">
+    <h6 class="fw-semibold mb-2">Excel Import / Export (Primary Method)</h6>
+    <p class="text-muted small mb-3">
+      Recommended for fast and error-free setup.
+      Import will <strong>replace all existing activities</strong> for this line.
+    </p>
+
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+      <a href="{{ url_for('download_line_template') }}"
+         class="btn btn-outline-secondary btn-sm">
+        Download Template
+      </a>
+
+      <form method="post"
+            action="{{ url_for('import_line_activities', line_id=line.id) }}"
+            enctype="multipart/form-data"
+            class="d-flex gap-2 align-items-center">
+        <input type="file" name="file" required class="form-control form-control-sm">
+        <button class="btn btn-primary btn-sm">
+          Import & Replace
+        </button>
+      </form>
+
+      <a href="{{ url_for('export_line_activities', line_id=line.id) }}"
+         class="btn btn-outline-success btn-sm">
+        Export Current Data
+      </a>
+    </div>
+  </div>
+</div>
+
 
 <hr>
 
