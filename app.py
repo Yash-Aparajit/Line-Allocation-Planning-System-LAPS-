@@ -1,11 +1,14 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, send_file
+import math
+import os
+import shutil
+import io
+import pandas as pd
+
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file, Response
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import date
-import math
-import os
-import shutil
 
 # ---------------- APP SETUP ---------------- #
 
@@ -136,6 +139,113 @@ def line_activities(line_id):
         activities=activities,
         total_wc=total_wc
     )
+
+import io
+from flask import Response
+import pandas as pd
+
+# ---------------- LINE MASTER: EXCEL TEMPLATE ---------------- #
+
+@app.route("/line-master/template")
+@login_required
+def download_line_template():
+    df = pd.DataFrame(columns=[
+        "activity_seq_no",
+        "activity_text",
+        "time_sec"
+    ])
+
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+        df.to_excel(writer, index=False, sheet_name="Activities")
+
+    output.seek(0)
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name="line_activity_template.xlsx"
+    )
+
+# ---------------- LINE MASTER: EXPORT ---------------- #
+
+@app.route("/line/<int:line_id>/export")
+@login_required
+def export_line_activities(line_id):
+    line = Line.query.get_or_404(line_id)
+    activities = Activity.query.filter_by(line_id=line.id).order_by(Activity.seq_no).all()
+
+    data = [{
+        "activity_seq_no": a.seq_no,
+        "activity_text": a.text,
+        "time_sec": a.time_sec
+    } for a in activities]
+
+    df = pd.DataFrame(data)
+
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+        df.to_excel(writer, index=False, sheet_name=line.name)
+
+    output.seek(0)
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name=f"{line.name}_activities.xlsx"
+    )
+
+# ---------------- LINE MASTER: IMPORT ---------------- #
+
+@app.route("/line/<int:line_id>/import", methods=["POST"])
+@login_required
+def import_line_activities(line_id):
+    line = Line.query.get_or_404(line_id)
+    file = request.files.get("file")
+
+    if not file:
+        flash("No file uploaded", "danger")
+        return redirect(url_for("line_activities", line_id=line.id))
+
+    try:
+        df = pd.read_excel(file)
+    except Exception:
+        flash("Invalid Excel file", "danger")
+        return redirect(url_for("line_activities", line_id=line.id))
+
+    required_cols = ["activity_seq_no", "activity_text", "time_sec"]
+    if list(df.columns) != required_cols:
+        flash("Excel format mismatch. Use the provided template.", "danger")
+        return redirect(url_for("line_activities", line_id=line.id))
+
+    # ---- VALIDATIONS ---- #
+    if df.isnull().any().any():
+        flash("Missing values found in Excel", "danger")
+        return redirect(url_for("line_activities", line_id=line.id))
+
+    if (df["time_sec"] <= 0).any():
+        flash("Time must be greater than zero", "danger")
+        return redirect(url_for("line_activities", line_id=line.id))
+
+    seq = df["activity_seq_no"].astype(int).tolist()
+    if seq != list(range(min(seq), min(seq) + len(seq))):
+        flash("Sequence must be continuous and increasing", "danger")
+        return redirect(url_for("line_activities", line_id=line.id))
+
+    # ---- CLEAN OVERWRITE ---- #
+    Activity.query.filter_by(line_id=line.id).delete()
+
+    for _, row in df.iterrows():
+        db.session.add(Activity(
+            line_id=line.id,
+            seq_no=int(row["activity_seq_no"]),
+            text=str(row["activity_text"]),
+            time_sec=int(row["time_sec"])
+        ))
+
+    db.session.commit()
+    flash("Activities imported successfully", "success")
+
+    return redirect(url_for("line_activities", line_id=line.id))
+
 
 # ---------------- DAILY PLAN ---------------- #
 
