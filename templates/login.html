@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="row justify-content-center">
+  <div class="col-md-4">
+    <div class="card p-4 shadow-sm">
+      <h4 class="mb-3 text-center">Login</h4>
+
+      <form method="post">
+        <input name="username" class="form-control mb-2" placeholder="Username" required>
+        <input type="password" name="password" class="form-control mb-3" placeholder="Password" required>
+        <button class="btn btn-primary w-100">Login</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
