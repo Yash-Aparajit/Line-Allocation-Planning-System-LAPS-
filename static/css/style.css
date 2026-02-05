@@ -1,0 +1,15 @@
+body {
+  background: #f4f6f9;
+}
+
+.card {
+  border-radius: 10px;
+}
+
+.table th {
+  background-color: #f1f3f5;
+}
+
+.alert {
+  border-radius: 8px;
+}
