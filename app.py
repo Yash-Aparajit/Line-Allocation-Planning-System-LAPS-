@@ -3,10 +3,11 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import date
-import pandas as pd
 import math
 import os
 import shutil
+
+# ---------------- APP SETUP ---------------- #
 
 app = Flask(__name__)
 app.secret_key = "laps_secret_key"
@@ -27,28 +28,27 @@ login_manager.init_app(app)
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True)
-    password_hash = db.Column(db.String(200))
-    role = db.Column(db.String(20))  # admin / developer
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    password_hash = db.Column(db.String(200), nullable=False)
+    role = db.Column(db.String(20), nullable=False)
 
 class Line(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
 
 class Activity(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    line_id = db.Column(db.Integer, db.ForeignKey("line.id"))
-    seq_no = db.Column(db.Integer)
-    text = db.Column(db.String(200))
-    time_sec = db.Column(db.Integer)
+    line_id = db.Column(db.Integer, db.ForeignKey("line.id"), nullable=False)
+    seq_no = db.Column(db.Integer, nullable=False)
+    text = db.Column(db.String(200), nullable=False)
+    time_sec = db.Column(db.Integer, nullable=False)
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
-# ---------------- INIT ---------------- #
+# ---------------- DB INIT (FLASK 3 SAFE) ---------------- #
 
-@app.before_first_request
 def init_db():
     db.create_all()
 
@@ -66,6 +66,9 @@ def init_db():
         db.session.add_all([admin, dev])
         db.session.commit()
 
+with app.app_context():
+    init_db()
+
 # ---------------- AUTH ---------------- #
 
 @app.route("/", methods=["GET", "POST"])
@@ -76,7 +79,7 @@ def login():
         if user and check_password_hash(user.password_hash, request.form["password"]):
             login_user(user)
             return redirect(url_for("line_master"))
-        flash("Invalid credentials")
+        flash("Invalid username or password", "danger")
     return render_template("login.html")
 
 @app.route("/logout")
@@ -90,14 +93,14 @@ def logout():
 @app.route("/line-master", methods=["GET", "POST"])
 @login_required
 def line_master():
-    lines = Line.query.all()
+    lines = Line.query.order_by(Line.name).all()
 
     if request.method == "POST":
-        line_name = request.form["line_name"].strip()
-        if line_name:
-            db.session.add(Line(name=line_name))
+        name = request.form["line_name"].strip()
+        if name:
+            db.session.add(Line(name=name))
             db.session.commit()
-            flash("Line added")
+            flash("Line added successfully", "success")
         return redirect(url_for("line_master"))
 
     return render_template("line_master.html", lines=lines)
@@ -109,11 +112,11 @@ def line_activities(line_id):
 
     if request.method == "POST":
         seq = int(request.form["seq"])
-        text = request.form["text"]
+        text = request.form["text"].strip()
         time_sec = int(request.form["time_sec"])
 
         if time_sec <= 0:
-            flash("Time must be > 0")
+            flash("Time must be greater than zero", "danger")
             return redirect(request.url)
 
         db.session.add(Activity(
@@ -144,13 +147,11 @@ def daily_plan():
 
     if request.method == "POST":
         shift_min = int(request.form["shift"])
-        plan_date = request.form["date"]
 
         for line in lines:
             qty = request.form.get(f"qty_{line.id}")
             if qty and int(qty) > 0:
-                allocation = compute_allocation(line.id, int(qty), shift_min)
-                result.append(allocation)
+                result.append(compute_allocation(line.id, int(qty), shift_min))
 
     return render_template(
         "daily_plan.html",
@@ -167,7 +168,6 @@ def compute_allocation(line_id, plan_qty, shift_min):
 
     shift_sec = shift_min * 60
     takt = shift_sec / plan_qty
-
     manpower = math.ceil(wc / takt)
 
     while True:
@@ -189,12 +189,11 @@ def compute_allocation(line_id, plan_qty, shift_min):
     operators = []
     for i, acts in enumerate(buckets):
         t = sum(a.time_sec for a in acts)
+        status = "ok"
         if t > takt:
             status = "over"
         elif t < 0.6 * takt:
             status = "under"
-        else:
-            status = "ok"
 
         operators.append({
             "name": f"OP{i+1}",
@@ -210,7 +209,6 @@ def compute_allocation(line_id, plan_qty, shift_min):
         "takt": round(takt, 2),
         "wc": wc,
         "manpower": manpower,
-        "max_time": max(times),
         "operators": operators
     }
 
@@ -231,7 +229,7 @@ def restore():
 
     file = request.files["db"]
     file.save(DB_PATH)
-    flash("Database restored. Restart app.")
+    flash("Database restored. Restart app.", "warning")
     return redirect(url_for("line_master"))
 
 # ---------------- RUN ---------------- #
