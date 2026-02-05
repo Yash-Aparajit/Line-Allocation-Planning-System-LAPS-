@@ -1,0 +1,69 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h4>Daily Plan</h4>
+
+<form method="post" class="card p-3 mb-4">
+  <div class="row">
+    <div class="col">
+      <label>Date</label>
+      <input type="date" name="date" value="{{ today }}" class="form-control">
+    </div>
+    <div class="col">
+      <label>Shift (min)</label>
+      <input type="number" name="shift" value="480" class="form-control">
+    </div>
+  </div>
+
+  <hr>
+
+  {% for l in lines %}
+  <div class="row mb-2">
+    <div class="col">{{ l.name }}</div>
+    <div class="col">
+      <input type="number" name="qty_{{ l.id }}" class="form-control" placeholder="Plan Qty">
+    </div>
+  </div>
+  {% endfor %}
+
+  <button class="btn btn-primary mt-3">Generate Allocation</button>
+</form>
+
+{% for r in result %}
+<div class="card mb-4">
+  <div class="card-header">
+    {{ r.line }} | Plan {{ r.plan }} | Takt {{ r.takt }}s | Manpower {{ r.manpower }}
+  </div>
+
+  <div class="table-responsive">
+  <table class="table table-sm">
+    <thead>
+      <tr>
+        <th>Operator</th>
+        <th>Activities</th>
+        <th>Total Time</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for op in r.operators %}
+      <tr>
+        <td>{{ op.name }}</td>
+        <td>
+          {% for a in op.acts %}
+            {{ a.seq_no }}{% if not loop.last %}, {% endif %}
+          {% endfor %}
+        </td>
+        <td>{{ op.time }}</td>
+        <td>
+          {% if op.status == 'over' %}🔴{% elif op.status == 'under' %}🟡{% else %}🟢{% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}
