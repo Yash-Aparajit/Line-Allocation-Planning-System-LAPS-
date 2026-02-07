@@ -1,33 +1,137 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>LAPS</title>
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </head>
-<body>
 
-<nav class="navbar navbar-light bg-white shadow-sm px-4">
-  <span class="navbar-brand fw-bold">LAPS</span>
+<body style="background-color: #f5f7fa;">
 
-  {% if current_user.is_authenticated %}
-  <div>
-    <a href="{{ url_for('line_master') }}" class="btn btn-outline-primary btn-sm">Line Master</a>
-    <a href="{{ url_for('daily_plan') }}" class="btn btn-outline-primary btn-sm">Daily Plan</a>
-    <a href="{{ url_for('backup') }}" class="btn btn-outline-secondary btn-sm">Backup</a>
-    <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Logout</a>
+<!-- ================= TOP NAVBAR ================= -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm px-4">
+  <div class="container-fluid">
+
+    <!-- LEFT: APP NAME -->
+    <a href="{{ url_for('daily_plan') }}"
+       class="navbar-brand fw-bold text-primary">
+      LAPS
+    </a>
+
+    {% if current_user.is_authenticated %}
+
+    <!-- CENTER: PRIMARY NAV -->
+    <div class="mx-auto d-flex gap-3">
+      <a href="{{ url_for('daily_plan') }}"
+         class="btn btn-outline-primary btn-sm">
+        Daily Plan
+      </a>
+
+      <a href="{{ url_for('line_master') }}"
+         class="btn btn-outline-primary btn-sm">
+        Line Master
+      </a>
+
+      <!-- Admin + Developer -->
+      <a href="{{ url_for('backup') }}"
+         class="btn btn-outline-secondary btn-sm">
+        Backup
+      </a>
+
+      <!-- Developer only -->
+      {% if current_user.role == 'developer' %}
+      <form method="post"
+            action="{{ url_for('restore') }}"
+            enctype="multipart/form-data"
+            class="d-inline">
+        <input type="file"
+               name="db"
+               accept=".db"
+               required
+               class="form-control form-control-sm d-inline"
+               style="width: 180px;">
+        <button class="btn btn-outline-danger btn-sm"
+                onclick="return confirm('This will restore the database and overwrite current data. Continue?')">
+          Restore
+        </button>
+      </form>
+      {% endif %}
+
+      <a href="#"
+         class="btn btn-outline-info btn-sm">
+        Help
+      </a>
+    </div>
+
+    <!-- RIGHT: PROFILE / HAMBURGER -->
+    <div class="dropdown">
+      <button class="btn btn-outline-dark btn-sm dropdown-toggle"
+              type="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false">
+        ☰
+      </button>
+
+      <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+        <li class="px-3 py-2">
+          <div class="fw-semibold">{{ current_user.username }}</div>
+          <div class="text-muted small">
+            Role: {{ current_user.role|capitalize }}
+          </div>
+        </li>
+
+        <li><hr class="dropdown-divider"></li>
+
+        <!-- Common -->
+        <li>
+          <a class="dropdown-item" href="#">
+            Change Password
+          </a>
+        </li>
+
+        <!-- Developer only -->
+        {% if current_user.role == 'developer' %}
+        <li>
+          <a class="dropdown-item" href="#">
+            Reset Password
+          </a>
+        </li>
+        {% endif %}
+
+        <li><hr class="dropdown-divider"></li>
+
+        <li>
+          <a class="dropdown-item text-danger"
+             href="{{ url_for('logout') }}">
+            Logout
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    {% endif %}
   </div>
-  {% endif %}
 </nav>
 
+<!-- ================= PAGE CONTENT ================= -->
 <div class="container my-4">
+
   {% with messages = get_flashed_messages(with_categories=true) %}
-    {% for cat, msg in messages %}
-      <div class="alert alert-{{ cat }}">{{ msg }}</div>
-    {% endfor %}
+    {% if messages %}
+      {% for cat, msg in messages %}
+        <div class="alert alert-{{ cat }} mb-3">
+          {{ msg }}
+        </div>
+      {% endfor %}
+    {% endif %}
   {% endwith %}
 
   {% block content %}{% endblock %}
+
 </div>
 
 </body>
