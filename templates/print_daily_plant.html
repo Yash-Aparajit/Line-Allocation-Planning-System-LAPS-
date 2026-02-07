@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>LAPS – Daily Plan Print</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    @media print {
+      .page-break {
+        page-break-after: always;
+      }
+    }
+
+    body {
+      padding: 24px;
+      font-size: 14px;
+    }
+
+    h2 {
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Daily Line Allocation</h2>
+
+{% for r in result %}
+<div class="mb-3">
+  <strong>Line:</strong> {{ r.line }} |
+  <strong>Plan:</strong> {{ r.plan }} |
+  <strong>Takt:</strong> {{ r.takt }} sec |
+  <strong>Manpower:</strong> {{ r.manpower }}
+</div>
+
+<table class="table table-bordered table-sm">
+  <thead>
+    <tr>
+      <th>Operator</th>
+      <th>Activities</th>
+      <th>Total Time (sec)</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for op in r.operators %}
+    <tr>
+      <td>{{ op.name }}</td>
+      <td>
+        <ol style="padding-left: 18px; margin: 0;">
+          {% for a in op.acts %}
+            <li>
+              {{ a.text }}
+            </li>
+          {% endfor %}
+        </ol>
+      </td>
+
+      <td>{{ op.time }}</td>
+      <td>
+        {% if op.status == 'over' %}OVER
+        {% elif op.status == 'under' %}UNDER
+        {% else %}OK{% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<div class="page-break"></div>
+{% endfor %}
+
+</body>
+</html>
