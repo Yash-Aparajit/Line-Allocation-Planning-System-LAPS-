@@ -1,46 +1,99 @@
+/* ========== GLOBAL ========== */
 body {
-  background: #f4f6f9;
+  background: #f5f7fa;
+  color: #212529;
 }
 
-/* Cards */
+/* Typography */
+h4, h5, h6 {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+small, .text-muted {
+  color: #6b7280 !important;
+}
+
+/* ========== CARDS ========== */
 .card {
-  border-radius: 12px;
+  border: none;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
 }
 
-/* Tables */
-.table th {
-  background-color: #f1f3f5;
+.card-header {
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  font-weight: 600;
 }
 
-.table td,
-.table th {
-  vertical-align: middle;
+/* Section cards (Excel / Summary) */
+.card.section {
+  background: #ffffff;
 }
 
-/* Alerts */
-.alert {
+/* Highlight primary sections */
+.card.primary {
+  border-left: 4px solid #0d6efd;
+}
+
+/* ========== TABLES ========== */
+.table {
+  background: #ffffff;
+}
+
+.table thead th {
+  background: #f8fafc;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.table td {
+  color: #111827;
+}
+
+.table-hover tbody tr:hover {
+  background: #f9fafb;
+}
+
+/* ========== FORMS ========== */
+.form-control {
   border-radius: 8px;
 }
 
-/* Badges */
+.form-control:focus {
+  border-color: #0d6efd;
+  box-shadow: none;
+}
+
+/* ========== BUTTONS ========== */
+.btn {
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-secondary:hover,
+.btn-outline-success:hover,
+.btn-outline-danger:hover {
+  color: #fff;
+}
+
+/* ========== BADGES ========== */
 .badge {
-  font-size: 0.85rem;
-  padding: 0.45em 0.65em;
+  font-size: 0.8rem;
+  padding: 0.45em 0.7em;
+  border-radius: 999px;
 }
 
-/* Clickable card headers */
-.card-header {
-  user-select: none;
+/* ========== ALERTS ========== */
+.alert {
+  border-radius: 10px;
+  font-size: 0.95rem;
 }
 
-/* Minor polish */
-h4 {
-  font-weight: 600;
-}
-.card-header {
-  background-color: #ffffff;
-}
-
-.display-6 {
-  line-height: 1.1;
+/* ========== SPACING HELPERS ========== */
+.section-gap {
+  margin-bottom: 2rem;
 }
