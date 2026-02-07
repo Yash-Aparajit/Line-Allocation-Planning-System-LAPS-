@@ -246,6 +246,17 @@ def import_line_activities(line_id):
 
     return redirect(url_for("line_activities", line_id=line.id))
 
+# ---------------- LINE MASTER: DELETE ---------------- #
+
+@app.route("/activity/<int:activity_id>/delete", methods=["POST"])
+@login_required
+def delete_activity(activity_id):
+    act = Activity.query.get_or_404(activity_id)
+    line_id = act.line_id
+    db.session.delete(act)
+    db.session.commit()
+    flash("Activity deleted", "warning")
+    return redirect(url_for("line_activities", line_id=line_id))
 
 # ---------------- DAILY PLAN ---------------- #
 
@@ -270,6 +281,59 @@ def daily_plan():
         result=result
     )
 
+# ---------------- EXPORT DAILY PLAN (EXCEL) ---------------- #
+
+@app.route("/export/daily-plan", methods=["POST"])
+@login_required
+def export_daily_plan():
+    lines = Line.query.all()
+    shift_min = int(request.form["shift"])
+
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+
+        for line in lines:
+            qty = request.form.get(f"qty_{line.id}")
+            if qty and int(qty) > 0:
+                r = compute_allocation(line.id, int(qty), shift_min)
+
+                rows = []
+                for op in r["operators"]:
+                    rows.append({
+                        "Operator": op["name"],
+                        "Activities": " | ".join(f"{a.seq_no}. {a.text}" for a in op["acts"]),
+                        "Total Time (sec)": op["time"],
+                        "Status": op["status"]
+                    })
+
+                df = pd.DataFrame(rows)
+
+                sheet_name = r["line"][:31]
+                df.to_excel(writer, sheet_name=sheet_name, index=False)
+
+    output.seek(0)
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name="Daily_Plan_Allocation.xlsx"
+    )
+
+# ---------------- PRINT DAILY PLAN ---------------- #
+
+@app.route("/print/daily-plan", methods=["POST"])
+@login_required
+def print_daily_plan():
+    lines = Line.query.all()
+    shift_min = int(request.form["shift"])
+    result = []
+
+    for line in lines:
+        qty = request.form.get(f"qty_{line.id}")
+        if qty and int(qty) > 0:
+            result.append(compute_allocation(line.id, int(qty), shift_min))
+
+    return render_template("print_daily_plan.html", result=result)
+
 # ---------------- CORE LOGIC ---------------- #
 
 def compute_allocation(line_id, plan_qty, shift_min):
@@ -279,6 +343,8 @@ def compute_allocation(line_id, plan_qty, shift_min):
     shift_sec = shift_min * 60
     takt = shift_sec / plan_qty
     manpower = math.ceil(wc / takt)
+    manpower = min(manpower, len(activities))
+
 
     LOWER_BOUND = takt - 10
     UPPER_BOUND = takt + 2
@@ -309,12 +375,13 @@ def compute_allocation(line_id, plan_qty, shift_min):
         elif t < 0.6 * takt:
             status = "under"
 
-        operators.append({
-            "name": f"OP{i+1}",
-            "acts": acts,
-            "time": t,
-            "status": status
-        })
+        if t > 0:
+            operators.append({
+                "name": f"OP{i+1}",
+                "acts": acts,
+                "time": t,
+                "status": status
+            })
 
     return {
         "line": Line.query.get(line_id).name,
@@ -322,9 +389,11 @@ def compute_allocation(line_id, plan_qty, shift_min):
         "shift": shift_min,
         "takt": round(takt, 2),
         "wc": wc,
-        "manpower": manpower,
+        "manpower_required": manpower,
+        "manpower_used": len(operators),
         "operators": operators
     }
+
 
 # ---------------- BACKUP / RESTORE ---------------- #
 
