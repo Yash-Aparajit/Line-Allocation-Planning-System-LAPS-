@@ -7,8 +7,8 @@
 
 {% if not show_result %}
 <!-- ================= INPUT FORM ================= -->
-<form method="post" class="card p-4 mb-4 shadow-sm">
-  <div class="row mb-3">
+<form method="post" class="card p-4 mb-4 shadow-sm mx-auto" style="max-width: 900px;">
+  <div class="row mb-4 text-muted">
     <div class="col-md-4">
       <label class="form-label fw-semibold">Date</label>
       <input type="date" name="date" value="{{ today }}" class="form-control">
@@ -21,21 +21,25 @@
 
   <hr>
 
-  <div class="fw-semibold mb-2">Production Plan</div>
+<div class="fw-semibold mb-3 fs-5 border-bottom pb-2">
+  Production Plan
+</div>
 
   {% for l in lines %}
-  <div class="row mb-2 align-items-center">
-    <div class="col-md-6">{{ l.name }}</div>
+  <div class="row mb-3 align-items-center">
+    <div class="col-md-4 fw-semibold">
+      {{ l.name }}
+    </div>
     <div class="col-md-4">
       <input type="number"
-             name="qty_{{ l.id }}"
-             class="form-control"
-             placeholder="Plan Qty">
+            name="qty_{{ l.id }}"
+            class="form-control form-control-lg"
+            placeholder="Plan Qty">
     </div>
   </div>
   {% endfor %}
 
-  <button class="btn btn-primary mt-3 px-4">
+  <button class="btn btn-primary btn-lg w-100 mt-4">
     Generate Allocation
   </button>
 </form>
@@ -76,7 +80,10 @@
       <div class="col-md-2 text-center">
         <div class="text-muted small">Manpower</div>
         <div class="display-6 fw-bold text-primary">
-          {{ r.manpower }}
+          {{ r.manpower_used }}
+        </div>
+        <div class="text-muted small">
+          Required: {{ r.manpower_required }}
         </div>
       </div>
     </div>
@@ -113,26 +120,40 @@
 
       <!-- ================= ALLOCATION TABLE ================= -->
       <div class="table-responsive">
-        <table class="table table-sm table-hover">
+        <table class="table table-sm">
           <thead>
             <tr>
-              <th>Operator</th>
-              <th>Activities</th>
-              <th>Total Time (sec)</th>
-              <th>Status</th>
+              <th style="width: 8%">OP</th>
+              <th>Assigned Activities</th>
+              <th style="width: 10%">Time (s)</th>
+              <th style="width: 6%">Status</th>
             </tr>
           </thead>
           <tbody>
+
           {% for op in r.operators %}
             <tr>
-              <td class="fw-semibold">{{ op.name }}</td>
+              <!-- OP -->
+              <td class="fw-bold align-top">{{ op.name }}</td>
+
+              <!-- ACTIVITIES -->
               <td>
-                {% for a in op.acts %}
-                  {{ a.seq_no }}{% if not loop.last %}, {% endif %}
-                {% endfor %}
+                <ol class="mb-0 ps-3">
+                  {% for a in op.acts %}
+                    <li class="mb-1">
+                      <span class="fw-semibold">{{ a.text }}</span>
+                    </li>
+                  {% endfor %}
+                </ol>
               </td>
-              <td>{{ op.time }}</td>
-              <td>
+
+              <!-- TIME -->
+              <td class="align-top fw-semibold">
+                {{ op.time }}
+              </td>
+
+              <!-- STATUS -->
+              <td class="align-top">
                 {% if op.status == 'over' %}
                   🔴
                 {% elif op.status == 'under' %}
@@ -143,22 +164,49 @@
               </td>
             </tr>
           {% endfor %}
+
           </tbody>
         </table>
+      </div>
+
+      <hr class="my-3">
+      <div class="d-flex justify-content-between align-items-center">
+        <!-- LEFT: EXPORT / PRINT -->
+        <div class="d-flex gap-2">
+          <form method="post" action="{{ url_for('export_daily_plan') }}" class="d-inline">
+            <input type="hidden" name="shift" value="{{ request.form.get('shift') }}">
+            {% for l in lines %}
+              <input type="hidden" name="qty_{{ l.id }}" value="{{ request.form.get('qty_' ~ l.id) }}">
+            {% endfor %}
+            <button class="btn btn-success btn-sm">
+              Export Excel
+            </button>
+          </form>
+
+          <form method="post"
+                action="{{ url_for('print_daily_plan') }}"
+                target="_blank"
+                class="d-inline">
+            <input type="hidden" name="shift" value="{{ request.form.get('shift') }}">
+            {% for l in lines %}
+              <input type="hidden" name="qty_{{ l.id }}" value="{{ request.form.get('qty_' ~ l.id) }}">
+            {% endfor %}
+            <button class="btn btn-outline-primary btn-sm">
+              Print (A4)
+            </button>
+          </form>
+        </div>
+
+        <!-- RIGHT: CLEAR -->
+        <a href="{{ url_for('daily_plan') }}"
+          class="btn btn-outline-secondary btn-sm">
+          Clear & New Plan
+        </a>
       </div>
 
     </div>
   </div>
 </div>
 {% endfor %}
-
-{% if show_result %}
-<!-- ================= CLEAR ================= -->
-<div class="d-flex gap-2">
-  <a href="{{ url_for('daily_plan') }}" class="btn btn-outline-secondary px-4">
-    Clear & New Plan
-  </a>
-</div>
-{% endif %}
 
 {% endblock %}
