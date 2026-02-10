@@ -12,6 +12,8 @@
 
 <body style="background-color: #f5f7fa;">
 
+
+{% if current_user.is_authenticated and request.endpoint != 'login' %}
 <!-- ================= TOP NAVBAR ================= -->
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm px-4">
   <div class="container-fluid">
@@ -22,57 +24,39 @@
       LAPS
     </a>
 
-    {% if current_user.is_authenticated %}
-
     <!-- CENTER: PRIMARY NAV -->
     <div class="mx-auto d-flex gap-3">
       <a href="{{ url_for('daily_plan') }}"
-         class="btn btn-outline-primary btn-sm">
+        class="btn btn-outline-primary btn-sm {% if request.path.startswith('/daily-plan') %}active{% endif %}">
         Daily Plan
       </a>
 
       <a href="{{ url_for('line_master') }}"
-         class="btn btn-outline-primary btn-sm">
+        class="btn btn-outline-primary btn-sm {% if request.path.startswith('/line-master') %}active{% endif %}">
         Line Master
       </a>
 
-      <!-- Admin + Developer -->
-      <a href="{{ url_for('backup') }}"
-         class="btn btn-outline-secondary btn-sm">
+      <a href="{{ url_for('backup') }}" class="btn btn-outline-secondary btn-sm">
         Backup
       </a>
 
-      <!-- Developer only -->
       {% if current_user.role == 'developer' %}
-      <form method="post"
-            action="{{ url_for('restore') }}"
-            enctype="multipart/form-data"
-            class="d-inline">
-        <input type="file"
-               name="db"
-               accept=".db"
-               required
-               class="form-control form-control-sm d-inline"
-               style="width: 180px;">
-        <button class="btn btn-outline-danger btn-sm"
-                onclick="return confirm('This will restore the database and overwrite current data. Continue?')">
-          Restore
-        </button>
-      </form>
+      <a href="{{ url_for('restore_page') }}"
+        class="btn btn-outline-danger btn-sm">
+        Restore
+      </a>
       {% endif %}
 
-      <a href="#"
-         class="btn btn-outline-info btn-sm">
+      <a href="{{ url_for('help_page') }}" class="btn btn-outline-info btn-sm">
         Help
       </a>
     </div>
 
-    <!-- RIGHT: PROFILE / HAMBURGER -->
+    <!-- RIGHT: PROFILE -->
     <div class="dropdown">
       <button class="btn btn-outline-dark btn-sm dropdown-toggle"
               type="button"
-              data-bs-toggle="dropdown"
-              aria-expanded="false">
+              data-bs-toggle="dropdown">
         ☰
       </button>
 
@@ -86,37 +70,34 @@
 
         <li><hr class="dropdown-divider"></li>
 
-        <!-- Common -->
         <li>
-          <a class="dropdown-item" href="#">
+          <a class="dropdown-item" href="{{ url_for('change_password') }}">
             Change Password
           </a>
         </li>
 
-        <!-- Developer only -->
         {% if current_user.role == 'developer' %}
-        <li>
-          <a class="dropdown-item" href="#">
-            Reset Password
-          </a>
-        </li>
-        {% endif %}
+          <li>
+            <a class="dropdown-item" href="{{ url_for('reset_password') }}">
+              Reset Password
+            </a>
+          </li>
+          {% endif %}
 
         <li><hr class="dropdown-divider"></li>
 
         <li>
-          <a class="dropdown-item text-danger"
-             href="{{ url_for('logout') }}">
+          <a class="dropdown-item text-danger" href="{{ url_for('logout') }}">
             Logout
           </a>
         </li>
       </ul>
     </div>
 
-    {% endif %}
   </div>
 </nav>
-
+{% endif %}
+  
 <!-- ================= PAGE CONTENT ================= -->
 <div class="container my-4">
 
