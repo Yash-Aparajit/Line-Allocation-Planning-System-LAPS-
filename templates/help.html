@@ -1,0 +1,109 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h4 class="mb-2 fw-semibold">Help & Usage Guide</h4>
+<p class="text-muted mb-4">
+  LAPS (Line Allocation & Planning System) is a decision-support tool for daily manpower planning.
+</p>
+
+<!-- ======================================================
+     WHAT THIS SYSTEM DOES
+====================================================== -->
+<div class="card mb-4">
+  <div class="card-body">
+    <h6 class="fw-semibold mb-2">What LAPS Does</h6>
+    <ul class="mb-0">
+      <li>Converts daily production plan into required manpower</li>
+      <li>Allocates activities to operators sequentially</li>
+      <li>Highlights overload and underutilization</li>
+      <li>Supports print and Excel export for shopfloor use</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ======================================================
+     DAILY PLAN – HOW TO USE
+====================================================== -->
+<div class="card mb-4">
+  <div class="card-body">
+    <h6 class="fw-semibold mb-2">Daily Planning – How to Use</h6>
+    <ol class="mb-0">
+      <li>Go to <strong>Daily Plan</strong></li>
+      <li>Select the assembly line</li>
+      <li>Enter planned quantity</li>
+      <li>Verify shift duration (default 480 minutes)</li>
+      <li>Click <strong>Generate Allocation</strong></li>
+      <li>Review alerts and operator-wise allocation</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ======================================================
+     LINE MASTER – IMPORTANT RULES
+====================================================== -->
+<div class="card mb-4">
+  <div class="card-body">
+    <h6 class="fw-semibold mb-2">Line Master – Important Rules</h6>
+    <ul class="mb-0">
+      <li>Activities must be defined in correct sequence</li>
+      <li>Time must be entered in seconds</li>
+      <li>Use Excel Import for any major changes</li>
+      <li>Manual entry is intended only for small corrections</li>
+      <li>Editing existing activities directly is not supported</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ======================================================
+     ALERTS EXPLANATION
+====================================================== -->
+<div class="card mb-4">
+  <div class="card-body">
+    <h6 class="fw-semibold mb-2">Understanding Alerts</h6>
+    <ul class="mb-0">
+      <li><strong>🔴 Overload:</strong> Operator time exceeds takt time</li>
+      <li><strong>🟡 Underutilized:</strong> Operator time is significantly below takt</li>
+      <li><strong>🟢 OK:</strong> Operator load is within acceptable range</li>
+    </ul>
+    <p class="text-muted small mt-2 mb-0">
+      Alerts indicate where human judgment or line balancing is required.
+      The system does not auto-correct assignments.
+    </p>
+  </div>
+</div>
+
+<!-- ======================================================
+     BACKUP / RESTORE
+====================================================== -->
+<div class="card mb-4">
+  <div class="card-body">
+    <h6 class="fw-semibold mb-2">Backup & Restore</h6>
+    <ul class="mb-0">
+      <li><strong>Backup:</strong> Downloads a full system database copy</li>
+      <li><strong>Restore:</strong> Developer-only feature</li>
+      <li>Restore will overwrite all current data</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ======================================================
+     IMPORTANT DISCLAIMERS
+====================================================== -->
+<div class="card">
+  <div class="card-body">
+    <h6 class="fw-semibold mb-2 text-danger">Important Notes</h6>
+    <ul class="mb-0">
+      <li>This system provides estimates, not final decisions</li>
+      <li>Supervisor judgment always overrides system output</li>
+      <li>Do not modify activity standards without approval</li>
+    </ul>
+  </div>
+</div>
+
+<div class="mt-4">
+  <a href="{{ url_for('daily_plan') }}" class="btn btn-outline-secondary">
+    Back to Daily Plan
+  </a>
+</div>
+
+{% endblock %}
